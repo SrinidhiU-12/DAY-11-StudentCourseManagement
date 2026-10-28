@@ -1,50 +1,42 @@
 ﻿using Microsoft.Data.SqlClient;
+using StudentCourseManagement.Helpers;
 using StudentCourseManagement.Models;
+using System.Data;
 
-namespace StudentCourseManagement.Repository;
+namespace StudentCourseManagement.Repository; // Make sure this matches your project namespace (Repositories or Repository)
 
 public class CourseRepository
 {
-    private readonly string _connectionString;
-
-    public CourseRepository(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
     public async Task AddCourseAsync(Course course)
     {
-        const string query = """
-            INSERT INTO Courses (CourseName, DurationMonths, Fee)
-            VALUES (@CourseName, @DurationMonths, @Fee)
+        const string sql = """
+            INSERT INTO Courses (CourseName, DurationMonths, Fee, DepartmentId)
+            VALUES (@CourseName, @DurationMonths, @Fee, @DepartmentId);
+            SELECT CAST(SCOPE_IDENTITY() AS INT);
             """;
 
-        await using var connection = new SqlConnection(_connectionString);
-        await using var command = new SqlCommand(query, connection);
+        await using SqlConnection connection = DatabaseHelper.CreateConnection();
+        await using SqlCommand command = new(sql, connection);
 
-        command.Parameters.AddWithValue("@CourseName", course.CourseName);
-        command.Parameters.AddWithValue("@DurationMonths", course.DurationMonths);
-        command.Parameters.AddWithValue("@Fee", course.Fee);
+        command.Parameters.Add("@CourseName", SqlDbType.NVarChar, 100).Value = course.CourseName;
+        command.Parameters.Add("@DurationMonths", SqlDbType.Int).Value = course.DurationMonths;
+        command.Parameters.Add("@Fee", SqlDbType.Decimal).Value = course.Fee;
+        command.Parameters.Add("@DepartmentId", SqlDbType.Int).Value = course.DepartmentId;
 
         await connection.OpenAsync();
-        await command.ExecuteNonQueryAsync();
+        await command.ExecuteScalarAsync();
     }
 
     public async Task<List<Course>> GetAllCoursesAsync()
     {
-        const string query = """
-            SELECT CourseId, CourseName, DurationMonths, Fee
-            FROM Courses
-            ORDER BY CourseId
-            """;
-
+        const string sql = "SELECT CourseId, CourseName, DurationMonths, Fee, DepartmentId, IsActive FROM Courses";
         var courses = new List<Course>();
 
-        await using var connection = new SqlConnection(_connectionString);
-        await using var command = new SqlCommand(query, connection);
+        await using SqlConnection connection = DatabaseHelper.CreateConnection();
+        await using SqlCommand command = new(sql, connection);
 
         await connection.OpenAsync();
-        await using var reader = await command.ExecuteReaderAsync();
+        await using SqlDataReader reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
@@ -53,7 +45,9 @@ public class CourseRepository
                 CourseId = reader.GetInt32(0),
                 CourseName = reader.GetString(1),
                 DurationMonths = reader.GetInt32(2),
-                Fee = reader.GetDecimal(3)
+                Fee = reader.GetDecimal(3),
+                DepartmentId = reader.GetInt32(4),
+                IsActive = reader.GetBoolean(5)
             });
         }
 
@@ -62,18 +56,14 @@ public class CourseRepository
 
     public async Task<Course?> GetCourseByIdAsync(int id)
     {
-        const string query = """
-            SELECT CourseId, CourseName, DurationMonths, Fee
-            FROM Courses
-            WHERE CourseId = @CourseId
-            """;
+        const string sql = "SELECT CourseId, CourseName, DurationMonths, Fee, DepartmentId, IsActive FROM Courses WHERE CourseId = @CourseId";
 
-        await using var connection = new SqlConnection(_connectionString);
-        await using var command = new SqlCommand(query, connection);
-        command.Parameters.AddWithValue("@CourseId", id);
+        await using SqlConnection connection = DatabaseHelper.CreateConnection();
+        await using SqlCommand command = new(sql, connection);
+        command.Parameters.Add("@CourseId", SqlDbType.Int).Value = id;
 
         await connection.OpenAsync();
-        await using var reader = await command.ExecuteReaderAsync();
+        await using SqlDataReader reader = await command.ExecuteReaderAsync();
 
         if (await reader.ReadAsync())
         {
@@ -82,7 +72,9 @@ public class CourseRepository
                 CourseId = reader.GetInt32(0),
                 CourseName = reader.GetString(1),
                 DurationMonths = reader.GetInt32(2),
-                Fee = reader.GetDecimal(3)
+                Fee = reader.GetDecimal(3),
+                DepartmentId = reader.GetInt32(4),
+                IsActive = reader.GetBoolean(5)
             };
         }
 

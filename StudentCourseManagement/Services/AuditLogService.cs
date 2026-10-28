@@ -1,10 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using StudentCourseManagement.Models;
+using StudentCourseManagement.Repositories;
 
-namespace StudentCourseManagement.Services
+namespace StudentCourseManagement.Services;
+
+public class AuditLogService
 {
-    internal class AuditLogService
+    private readonly AuditLogRepository _repository;
+
+    public AuditLogService(AuditLogRepository repository)
     {
+        _repository = repository;
+    }
+
+    public Task<List<AuditLog>> GetRecentAuditLogsAsync(int count = 10)
+    {
+        return _repository.GetRecentAuditLogsAsync(count);
     }
 }
