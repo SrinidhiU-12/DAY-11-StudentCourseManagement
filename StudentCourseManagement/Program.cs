@@ -4,7 +4,7 @@ using StudentCourseManagement.Repository;
 using StudentCourseManagement.Services;
 
 string connectionString =
-    @"Server=.\SQLEXPRESS;Database=StudentCourseDB;Trusted_Connection=True;TrustServerCertificate=True;";
+    @"Server=UMASREEJAA-15\SQLEXPRESS;Database=StudentCourseDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
 var studentRepository = new StudentRepository(connectionString);
 var courseRepository = new CourseRepository(connectionString);
