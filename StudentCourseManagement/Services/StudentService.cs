@@ -38,4 +38,15 @@ public class StudentService
 
         return await _repository.GetStudentByIdAsync(id);
     }
+
+    public async Task EnrollStudentAsync(int studentId, int courseId)
+    {
+        if (studentId <= 0)
+            throw new ArgumentException("Student ID must be greater than zero.");
+
+        if (courseId <= 0)
+            throw new ArgumentException("Course ID must be greater than zero.");
+
+        await _repository.EnrollStudentAsync(studentId, courseId);
+    }
 }

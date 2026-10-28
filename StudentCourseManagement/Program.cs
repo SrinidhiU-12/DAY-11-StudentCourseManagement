@@ -21,7 +21,8 @@ while (true)
     Console.WriteLine("4. Add Course");
     Console.WriteLine("5. View All Courses");
     Console.WriteLine("6. Search Course By ID");
-    Console.WriteLine("7. Exit");
+    Console.WriteLine("7. Enroll Student in Course");
+    Console.WriteLine("8. Exit");
     Console.Write("Enter your choice: ");
 
     string? choice = Console.ReadLine();
@@ -157,6 +158,27 @@ while (true)
                 }
 
             case "7":
+                {
+                    Console.Write("Enter Student ID: ");
+                    if (!int.TryParse(Console.ReadLine(), out int studentId))
+                    {
+                        Console.WriteLine("Invalid student ID.");
+                        break;
+                    }
+
+                    Console.Write("Enter Course ID: ");
+                    if (!int.TryParse(Console.ReadLine(), out int courseId))
+                    {
+                        Console.WriteLine("Invalid course ID.");
+                        break;
+                    }
+
+                    await studentService.EnrollStudentAsync(studentId, courseId);
+                    Console.WriteLine("Student enrolled successfully! Audit record saved.");
+                    break;
+                }
+
+            case "8":
                 Console.WriteLine("Application closed.");
                 return;
 
@@ -171,7 +193,7 @@ while (true)
     }
     catch (SqlException ex)
     {
-        Console.WriteLine($"Database error: {ex.Message}");
+        Console.WriteLine($"Database error (Transaction Rolled Back): {ex.Message}");
     }
     catch (Exception ex)
     {
